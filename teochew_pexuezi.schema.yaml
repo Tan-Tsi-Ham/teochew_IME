@@ -1,0 +1,438 @@
+# Rime schema
+# encoding: utf-8
+#根据rime的注音输入法和朙月拼音输入法改编
+
+schema:
+  schema_id: teochew_pexuezi
+  name: 潮汕话白话字
+  version: '2.0'
+  author:
+    - 陈志涵 <harold726@qq.com>
+  description: |
+    分为四种模式：繁体字、简体字、罗马字选词输入、罗马字键盘输入。用上下键与空格或回车来选词，而数字键用来标声调。也可以选择不标声调，那么数字键可用来选词。
+    目前优先考虑让程序运行。至于便利性留给以后更新。
+
+  dependencies:
+    - luna_pinyin
+    # - stroke
+
+#点F4选择输入法后会出现下面的选项 
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, 西文 ]
+  - name: simplification
+    states: [ 漢字, 汉字 ]
+  # - options:
+  #     - zh_hant
+  #     - zh_hans
+  #     - romazi
+  #   states:
+  #     - 傳統漢字
+  #     - 简化字
+  #     - romazī
+  - name: full_shape
+    states: [ 半角, 全角 ]
+  - name: ascii_punct
+    states: [ 。，, ., ]
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    #fluid_editor和express_editor对立，前者按回车显示的是单词，后者按回车显示的是键盘
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    # - affix_segmentor@luna_pinyin
+    # - affix_segmentor@stroke
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    #码表翻译器。这个是允许用户自行添加自己的惯用字符。
+    - table_translator@custom_phrase
+    #反查翻译器
+    - reverse_lookup_translator
+    #脚本翻译器，不知道是啥
+    - script_translator
+  filters:
+    - simplifier@zh_hans
+    # - simplifier@romazi
+    - uniquifier
+
+menu:
+# 选词的按键
+  alternative_select_keys: "12345"
+  page_size: 5
+  # 用横排会更接近平时用的，但不用也没什么影响。作为RIME的特色，我决定保留。
+  horizontal: false
+
+speller:
+# 用到的按键
+  alphabet: 'abcdefghijklmnopqrstuvwxyz890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+# 第一个按键可以按的键
+  initials: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+# 最后一个按键可以按的键
+  # finals: "4567890"
+# 上屏时音节间分音符
+  delimiter: "-"
+# 空格不可以作为拼音的一部分
+  use_space: false
+# algebra算出的拼写会汇入prism，用于快速查找
+  algebra:
+  # 大小寫等價
+    - derive/a/A/
+    - derive/b/B/
+    - derive/c/C/
+    - derive/d/D/
+    - derive/e/E/
+    - derive/f/F/
+    - derive/g/G/
+    - derive/h/H/
+    - derive/i/I/
+    - derive/j/J/
+    - derive/k/K/
+    - derive/l/L/
+    - derive/m/M/
+    - derive/n/N/
+    - derive/o/O/
+    - derive/p/P/
+    - derive/q/Q/
+    - derive/r/R/
+    - derive/s/S/
+    - derive/t/T/
+    - derive/u/U/
+    - derive/v/V/
+    - derive/w/W/
+    - derive/x/X/
+    - derive/y/Y/
+    - derive/z/Z/
+    - derive/A/a/
+    - derive/B/b/
+    - derive/C/c/
+    - derive/D/d/
+    - derive/E/e/
+    - derive/F/f/
+    - derive/G/g/
+    - derive/H/h/
+    - derive/I/i/
+    - derive/J/j/
+    - derive/K/k/
+    - derive/L/l/
+    - derive/M/m/
+    - derive/N/n/
+    - derive/O/o/
+    - derive/P/p/
+    - derive/Q/q/
+    - derive/R/r/
+    - derive/S/s/
+    - derive/T/t/
+    - derive/U/u/
+    - derive/V/v/
+    - derive/W/w/
+    - derive/X/x/
+    - derive/Y/y/
+    - derive/Z/z/
+  # 所有声母-简拼（有个bug，就是写T做首字母时会出现ts和th……）似乎也不算bug
+    - abbrev/^([bcdghjklmnpqstz]).+$/$1/
+    - abbrev/^([ptkc]h).+$/$1/
+    - abbrev/^ng.+$/ng/
+    - abbrev/^ts.+$/ts/
+  # 无声调输入
+    - derive/([a-zA-Z])([890]{1,})/$1/
+  # 拼寫等價
+    - derive/^q/kh/
+    - derive/^ng/gn/
+    - derive/^z/j/
+    - derive/^ts/c/
+    - derive/^ch/tsh/
+    - derive/([aoe])y$/$1inn/
+    - derive/([aoe])w$/$1unn/
+    - derive/y([aoe])$/i$1nn/
+    - derive/w([aoe])$/u$1nn/
+    - derive/au/ao/
+  # 口音等價
+    - derive/n$/ng/
+    - derive/m$/ng/
+    - derive/t$/k/ 
+    - derive/p$/k/
+    - derive/d$/g/
+    - derive/b$/g/
+
+    - derive/([iy])e([hx])/$1o$2/
+    - derive/([iy])e/$1o/
+    - derive/([iy])au/$1ou/
+    - derive/([iy])au([hx])/$1ou$2/
+    - derive/oy/ay/
+
+    # 这里有个问题，就是写tsui的时候会出现tsir-i。不过这应该没多大影响，我太懒了，不修复它就是特性而不是bug
+    - derive/ir/u/
+    - derive/ir/i/
+    # 这个除外其实没必要啊，它派生的意思是i就是可以当i和ir使用，而不是粗暴的replace。输入ir匹配ir，输入i匹配i和ir。这个Rime还是非常智能的。
+    # - derive/ir(?!r)/i$1/
+
+    # 处理外来词
+    - erase/^.*98$/
+
+translator:
+# 系统查询词汇所依据的标准
+  dictionary: teochew_pexuezi
+  # 由algebra生成的prism的文件名
+  prism: teochew_prism
+  # 在屏幕上显示的键位样子
+  preedit_format:
+  # 不要轻易使用开头^和结尾$，因为你处理的是音节，写词的时候很多音节的头尾都在中间(存疑)
+  # 优先级问题：多字符的必须放上面！
+  # 有个问题，词典里没有的音节它不会自动合成符号。所以，需要把所有音节都录一遍。但我现在有点懒……
+  # 还有个问题，大写字母没有声调啊
+    - xform/a88/â/
+    - xform/a([iuywmnrg]{1,})88/â$1/
+    # 下面是大写标调的范例，但是我有点懒
+    # - xform/A88/Â/
+    # - xform/A([iuywmnrg]{1,})88/Â$1/
+    - xform/a99/ǎ/
+    - xform/a([iuywmnrg]{1,})99/ǎ$1/
+    - xform/a00/ā/
+    - xform/a([iuywmnrg]{1,})00/ā$1/
+    - xform/^a89/-a/
+    - xform/^a([iuywmnrg]{1,})89/-a$1/
+    - xform/([bcdghjklmnpqstziuyw]{1,})a89/-$1a/
+    - xform/([bcdghjklmnpqstziuyw]{1,})a([iuywmnrg]{1,})89/-$1a$2/
+    - xform/a([iuywmnrg]{1,})89/-a$1/
+    - xform/a8/a/
+    - xform/a([iuywmnrg]{1,})8/a$1/
+    - xform/a9/á/
+    - xform/a([iuywmnrg]{1,})9/á$1/
+    - xform/a0/à/
+    - xform/a([iuywmnrg]{1,})0/à$1/
+
+    - xform/o88/ô/
+    - xform/o([iuywmnrg]{1,})88/ô$1/
+    - xform/o99/ǒ/
+    - xform/o([iuywmnrg]{1,})99/ǒ$1/
+    - xform/o00/ō/
+    - xform/o([iuywmnrg]{1,})00/ō$1/
+    - xform/^o89/-o/
+    - xform/^o([iuywmnrg]{1,})89/-o$1/
+    - xform/([bcdghjklmnpqstziuyw]{1,})o89/-$1o/
+    - xform/([bcdghjklmnpqstziuyw]{1,})o([iuywmnrg]{1,})89/-$1o$2/
+    - xform/o8/o/
+    - xform/o([iuywmnrg]{1,})8/o$1/
+    - xform/o9/ó/
+    - xform/o([iuywmnrg]{1,})9/ó$1/
+    - xform/o0/ò/
+    - xform/o([iuywmnrg]{1,})0/ò$1/
+
+    - xform/e88/ê/
+    - xform/e([iuywmnrg]{1,})88/ê$1/
+    - xform/e99/ě/
+    - xform/e([iuywmnrg]{1,})99/ě$1/
+    - xform/e00/ē/
+    - xform/e([iuywmnrg]{1,})00/ē$1/
+    - xform/^e89/-e/
+    - xform/^e([iuywmnrg]{1,})89/-e$1/
+    - xform/([bcdghjklmnpqstziuyw]{1,})e89/-$1e/
+    - xform/([bcdghjklmnpqstziuyw]{1,})e([iuywmnrg]{1,})89/-$1e$2/
+    - xform/e8/e/
+    - xform/e([iuywmnrg]{1,})8/e$1/
+    - xform/e9/é/
+    - xform/e([iuywmnrg]{1,})9/é$1/
+    - xform/e0/è/
+    - xform/e([iuywmnrg]{1,})0/è$1/
+
+    - xform/^(iu|yu|ui|wi|yi|wu)89/-$1/
+    - xform/^(iu|yu|ui|wi|yi|wu)([mng]{1,})89/-$1$2/
+    
+    - xform/([bcdghjklmnpqstz]{1,})(iu|yu|yi)89/-$1$2/
+    - xform/([bcdghjklmnpqstz]{1,})(iu|yu|yi)([mng]{1,})89/-$1$2$3/
+
+    - xform/([bcdghjklmnpqstz]{1,})(ui|wi|wu)89/-$1$2/
+    - xform/([bcdghjklmnpqstz]{1,})(ui|wi|wu)([mng]{1,})89/-$1$2$3/
+
+    # - xform/^ui89/--ui/
+    # - xform/^([bcdghjklmnpqstziuyw]{1,})ui89/--$1ui/
+    # - xform/ui89/-ui/
+    # - xform/ui([mng]{1,})89/-ui$1/
+
+    # - xform/^yu89/--yu/
+    # - xform/^([bcdghjklmnpqstziuyw]{1,})yu89/--$1yu/
+    # - xform/yu89/-yu/
+    # - xform/yu([mng]{1,})89/-yu$1/
+
+    # - xform/^wi89/--wi/
+    # - xform/^([bcdghjklmnpqstziuyw]{1,})wi89/--$1wi/
+    # - xform/wi89/-wi/
+    # - xform/wi([mng]{1,})89/-wi$1/
+
+    - xform/ir88/îr/
+    - xform/ir99/ǐr/
+    - xform/ir00/īr/
+    - xform/^ir89/-ir/
+    - xform/^ir([mng]{1,})89/-ir$1/
+    - xform/([bcdghjklmnpqstzy]{1,})ir89/-$1ir/
+    - xform/([bcdghjklmnpqstzy]{1,})ir([mng]{1,})89/-$1ir$2/
+    - xform/ir8/ir/
+    - xform/ir9/ír/
+    - xform/ir0/ìr/
+
+    - xform/^([iu])89/-$1/
+    - xform/^([iu])([mng]{1,})89/-$1$2/
+    - xform/([bcdghjklmnpqstz]{1,})([iu])89/-$1$2/
+    - xform/([bcdghjklmnpqstz]{1,})([iu])([mng]{1,})89/-$1$2$3/
+
+    - xform/([bcdghjklmnpqstzuyw])i88/$1î/
+    - xform/i([rmnghxptkbdg]{1,})88/î$1/
+    - xform/([bcdghjklmnpqstzuyw])i99/$1ǐ/
+    - xform/i([rmnghxptkbdg]{1,})99/ǐ$1/
+    - xform/([bcdghjklmnpqstzuyw])i00/$1ī/
+    - xform/i([rmnghxptkbdg]{1,})00/ī$1/
+    - xform/([bcdghjklmnpqstzuyw])i8/$1i/
+    - xform/i([rmnghxptkbdg]{1,})8/i$1/
+    - xform/([bcdghjklmnpqstzuyw])i9/$1í/
+    - xform/i([rmnghxptkbdg]{1,})9/í$1/
+    - xform/([bcdghjklmnpqstzuyw])i0/$1ì/
+    - xform/i([rmnghxptkbdg]{1,})0/ì$1/
+
+    - xform/([bcdghjklmnpqstziyw])u88/$1û/
+    - xform/u([mnghxptkbdg]{1,})88/û$1/
+    - xform/([bcdghjklmnpqstziyw])u99/$1ǔ/
+    - xform/u([mnghxptkbdg]{1,})99/ǔ$1/
+    - xform/([bcdghjklmnpqstziyw])u00/$1ū/
+    - xform/u([mnghxptkbdg]{1,})00/ū$1/
+    - xform/([bcdghjklmnpqstziyw])u8/$1u/
+    - xform/u([mnghxptkbdg]{1,})8/u$1/
+    - xform/([bcdghjklmnpqstziyw])u9/$1ú/
+    - xform/u([mnghxptkbdg]{1,})9/ú$1/
+    - xform/([bcdghjklmnpqstziyw])u0/$1ù/
+    - xform/u([mnghxptkbdg]{1,})0/ù$1/
+
+
+
+  # 提示码comment_format显示备注
+  comment_format:
+    # - xlit/456789/¹²³⁵⁶⁷/
+  # 担心初学者对于认调号有困难，所以备注里没必要标调，而是写数字/按键
+    # 外来词
+    - xform/^(.*)98$/$1/
+    # 汉语
+    - xform/([ptkh])$/$1⁴/
+    - xform/([bdgx])$/$1⁸/
+    - xform/88/⁵/
+    - xform/99/⁶/
+    - xform/00/⁷/
+    - xform/89/⁰/
+    - xlit/890/¹²³/
+    
+# 这个才是显示备注（comment_format）的代码啊
+  spelling_hints: 10
+
+# 用户自行添加惯用字符。
+custom_phrase:
+  dictionary: ""
+  # 设定用户词典名
+  user_dict: custom_phrase
+  db_class: stabledb
+  # 用户自己创建的词，肯定能记住按键，不必提示
+  enable_completion: false
+  # 不要自动造句
+  enable_sentence: false
+  # 用户自己创建的词，优先级当然为1
+  initial_quality: 1
+
+# reverse_lookup_stroke:
+#   dictionary: stroke
+#   enable_completion: true
+#   prefix: "``"
+#   suffix: "'"
+#   tips: 〔筆畫〕
+#   preedit_format:
+#     - xlit/hspnz/一丨丿丶乙/
+    # comment_format是显示当前的编码方案
+
+# 反查爲什麽沒用？改一下名字，上面沒改。
+reverse_lookup:
+  dictionary: luna_pinyin
+  prefix: "`"
+  suffix: "'"
+  tips: 〔拼音〕
+  preedit_format:
+    - xform/([nl])v/$1ü/
+    - xform/([nl])ue/$1üe/
+    - xform/([jqxy])v/$1u/
+  comment_format:
+    # 外来词
+    - xform/^(.*)98$/$1/
+    # 汉语
+    - xform/([ptkh])$/$1⁴/
+    - xform/([bdgx])$/$1⁸/
+    - xform/88/⁵/
+    - xform/99/⁶/
+    - xform/00/⁷/
+    - xform/89/⁰/
+    - xlit/890/¹²³/
+
+punctuator:
+# 导入外部yaml文件，文件内容的格式与这个差不多，只引用相同的小标题（即上面的punctuator）
+  import_preset: default
+
+# 定制操作键
+# editor:
+#   bindings:
+#     space: toggle_selection
+
+key_binder:
+  import_preset: default
+  # 设置快捷键
+  bindings:
+  # when：paging 选词已经翻页了；has_menu 选词时；composing 打键盘时；always 无条件执行
+  # accept和send的关键词参考https://github.com/LEOYoon-Tsaw/Rime_collections/blob/master/Rime_description.md，查 accept和send可用字段除A-Za-z0-9外，還包含以下鍵板上實際有的鍵：
+    - { when: paging, accept: minus, send: Page_Up }
+    - { when: has_menu, accept: equal, send: Page_Down }
+    # 聲調的快捷鍵“操作可爲以下任意一個：send輸出按鍵、toggle切換開關、send_sequence輸出一串按鍵、set_option開某多選開關、unset_option關某多選開關、select選候選字”
+    # 阴平8，阴上9，阴去0；阳平88，阳上99，阳去00；后变调89
+    - { when: composing, accept: KP_1, send_sequence: 8 }
+    - { when: composing, accept: KP_2, send_sequence: 9 }
+    - { when: composing, accept: KP_3, send_sequence: 0 }
+    - { when: composing, accept: KP_5, send_sequence: 88 }
+    - { when: composing, accept: KP_6, send_sequence: 99 }
+    - { when: composing, accept: KP_7, send_sequence: 00 }
+    - { when: composing, accept: KP_0, send_sequence: 89 }
+    # 防误触
+    - { when: composing, accept: KP_4, send_sequence:  }
+    - { when: composing, accept: KP_8, send_sequence:  }
+    - { when: composing, accept: KP_9, send_sequence:  }
+
+
+# 前面必须加matcher，作用是找出非字典字符，进行特殊处理
+recognizer:
+  import_preset: default
+  patterns:
+    punct: '^/([0-9]0?|[A-Za-z]+)$'
+    reverse_lookup: "`[a-z]*'?$"
+    # reverse_lookup_stroke: "``[a-z]*'?$"
+
+# 繁转简。这里和上面option name和simplifier要统一
+# zh_hans:
+#   option_name: zh_hans
+#   opencc_config: t2s.json
+#   # 不希望你提示繁体字，会占用空间导致拼音看不了
+#   tips: none
+#   excluded_types: [ reverse_lookup ]
+
+#romazi:
+#  option_name: romazi
+#  op
+
+__patch:
+  # 使用八股文語言模型
+  - grammar:/hant?
+  # 用家自選配置
+  - teochew_pexuezi.custom:/patch?
